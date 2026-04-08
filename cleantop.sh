@@ -1,6 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Define your desktop directory and respective clean-up folders
 desktop_dir="$HOME/Desktop"
 cleanup_dir="$HOME/Cleanup"
 photos_dir="$HOME/Pictures"
@@ -8,26 +7,42 @@ videos_dir="$HOME/Videos"
 documents_dir="$HOME/Documents"
 scripts_dir="$HOME/Scripts"
 
-# Create the cleanup folder if it doesn't exist
-mkdir -p "$cleanup_dir"
+mkdir -p "$cleanup_dir" "$photos_dir" "$videos_dir" "$documents_dir" "$scripts_dir"
 
-# Move files directly from the desktop folder to the cleanup folder; I should probably look into using xargs for this part, which would be a much faster and scalable solution
-# File extensions can be added and subtracted as necessary
-find "$desktop_dir" -maxdepth 1 -type f -exec bash -c ' 
-     file="$1"
-    file_name="$(basename "$file")"
-    
-    # Check file extension to determine its type
-    if [[ "$file_name" =~ \.mp4$ || "$file_name" =~ \.mkv$ ]]; then
-        mv "$file" "'"$videos_dir/$file_name"'"
-    elif [[ "$file_name" =~ \.jpg$ || "$file_name" =~ \.jpeg$ || "$file_name" =~ \.png$ ]]; then
-        mv "$file" "'"$photos_dir/$file_name"'"
-    elif [[ "$file_name" =~ \.txt$ || "$file_name" =~ \.odf$ ]]; then
-	mv "$file" "'"$documents_dir/$file_name"'"
-    elif [[ "$file_name" =~ \.sh$ || "$file_name" =~ \.c$ ]]; then
-	mv "$file" "'"$scripts_dir/$file_name"'"
+find "$desktop_dir" -maxdepth 1 -type f -print0 | while IFS= read -r -d '' file; do
+    file_name=$(basename "$file")
+
+    case "${file_name,,}" in
+        *.mp4|*.mkv)
+            target_dir="$videos_dir"
+            ;;
+        *.jpg|*.jpeg|*.png)
+            target_dir="$photos_dir"
+            ;;
+        *.txt|*.odt|*.pdf)
+            target_dir="$documents_dir"
+            ;;
+        *.sh|*.c|*.py|*.tf|*.yml|*.yaml)
+            target_dir="$scripts_dir"
+            ;;
+        *)
+            target_dir="$cleanup_dir"
+            ;;
+    esac
+
+    if [[ -e "$target_dir/$file_name" ]]; then
+        timestamp=$(date +%Y%m%d_%H%M%S)
+        
+        if [[ "$file_name" == *.* ]]; then
+            base="${file_name%.*}"
+            ext=".${file_name##*.}"
+            new_name="${base}_${timestamp}${ext}"
+        else
+            new_name="${file_name}_${timestamp}"
+        fi
+        
+        mv "$file" "$target_dir/$new_name"
     else
-        mv "$file" "'"$cleanup_dir/$file_name"'"
+        mv "$file" "$target_dir/$file_name"
     fi
-' bash {} \;
-
+done
