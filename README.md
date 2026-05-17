@@ -1,6 +1,6 @@
 ## cleantop.sh
 
-TThis script is a robust utility for maintaining a clean workspace. It automatically sorts files from your **Desktop** into categorized subdirectories based on their file extensions, ensuring that your primary interface remains clutter-free.
+This script is a robust utility for maintaining a clean workspace. It automatically sorts files from your **Desktop** into categorized subdirectories based on their file extensions, ensuring that your primary interface remains clutter-free.
 
 ---
 
